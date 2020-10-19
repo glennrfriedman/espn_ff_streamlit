@@ -23,9 +23,9 @@ if choice == "Enter League Credentials" :
 	st.header("Enter League Credentials")
 	st.write("To get started; please enter your league data following the instructions below.")
 	st.write("This app runs entirely using browser storage so the information provided here along with all your league data will not be collected or stored.")
-	session_state.league_id = st.text_input("League ID", "")
-	session_state.swid = st.text_input("SWID", "")
-	session_state.espn_s2 = st.text_input("S2", "")
+	session_state.league_id = st.text_input("League ID", 339211)
+	session_state.swid = st.text_input("SWID", "{2DFE4612-834F-4F94-8E1A-492F7A4A07BA}")
+	session_state.espn_s2 = st.text_input("S2", "AECQDeW2ouDG9t696CAcSjh49xTD%2BDCWIIn%2BUo%2BV%2BKZ1%2Bw9CLNZpoME5iUP07iJet5wtqDfQnt9WkoWC03%2B4Y4YShn7VKwg8vZKPo%2Fgsq4hOEZcja%2Fc%2Fs5TuZ5uKp3PWmVK4VJRDXdTbmUghmovmp8UXAz191%2BCPESL54MBfU4Obspe1EJ9yQIa507Z%2Byy4VTFF456eKW3gvFnROELXH%2BONDIIkePwMe9oBDUpZCas7lB4rmjOWOJvOOVI%2Fj6B%2BOfJ%2BPI2kmDr332XmSpW5%2BRQGClPlNOJ0eWn2FtWBPkfKCmw%3D%3D")
 	if session_state.league_id=='' or session_state.swid=='' or session_state.espn_s2=='' :
 			st.write('You need to ener your league info')
 			st.subheader("Instructions to get League Credentials")
@@ -60,18 +60,19 @@ else:
 		st.header('Nothing to see here ... please enter your league credentials to get started.')
 		st.image('./assets/butt_fumble.gif', width=800)
 	else:
-		page = st.sidebar.radio("View", ("Player Performance", "Team Performance", "Fun Facts", "Player Movement", "Buy Lows"))
+		page = st.sidebar.radio("View", ("Player Performance", "Team Performance", "Fun Facts", "Player Movement"))
 		def getData():
 			data = BoxData(year, int(session_state.league_id), str(session_state.espn_s2), str(session_state.swid))
 			return data
 
-		@st.cache
+		@st.cache(allow_output_mutation=True)
 		def getPlayerTeamBoxData():
 			data = getData()
 			team_box_data = data.getBoxData()
 			return team_box_data
 
 		weeks = getPlayerTeamBoxData()[2]
+
 		def returnPlayerBoxPlot():
 			player_variances = getPlayerTeamBoxData()[0]
 			return player_variances
@@ -168,6 +169,42 @@ else:
 			st.subheader("Breakdown of total points scored by team and position")
 			st.write("See how every performance from every week adds up, hover over the graph for more detail.")
 			st.plotly_chart(season_points_bar)
+			st.subheader("Team Points Scored per Week")
+			box_scores = getPlayerTeamBoxData()[1]
+			conditions = [
+				(box_scores['home_score'] > box_scores['away_score']),
+				(box_scores['away_score'] > box_scores['home_score'])
+			]
+			values = ['Home_Win', 'Away_Win']
+			box_scores['Win or Loss'] = np.select(conditions, values)
+			
+			box_scores_home = box_scores[['week','home_team','home_owner','home_score', 'Win or Loss']]
+			home_conditions = [
+				(box_scores_home['Win or Loss'] == 'Home_Win'),
+				(box_scores_home['Win or Loss'] == 'Away_Win')
+			]
+			home_values = ['Win', 'Loss']
+			box_scores_home['Win or Loss'] = np.select(home_conditions, home_values)
+			box_scores_home = box_scores_home.rename(columns={"week": "Week", "home_score": "Points Scored", "home_team": "Team", "Win or Loss": "Outcome", "home_owner": "Owner"}) 
+			
+			box_scores_away = box_scores[['week','away_team','away_owner','away_score', 'Win or Loss']]
+			away_conditions = [
+				(box_scores_away['Win or Loss'] == 'Away_Win'),
+				(box_scores_away['Win or Loss'] == 'Home_Win')
+			]
+			away_values = ['Win', 'Loss']
+			box_scores_away['Win or Loss'] = np.select(away_conditions, away_values)
+			box_scores_away = box_scores_away.rename(columns={"week": "Week", "away_score": "Points Scored", "away_team": "Team", "Win or Loss": "Outcome", "away_owner": "Owner"}) 
+			
+			season_points_by_team = pd.concat([box_scores_home, box_scores_away], ignore_index=True)
+			week_selection = st.slider('Filter by Week', value=weeks[-1], min_value=weeks[0], max_value=weeks[-1], step=1)
+			filtered_season_points_by_team = season_points_by_team[season_points_by_team['Week'] == week_selection].sort_values(by=['Points Scored'], ascending=False)
+			season_points_bar = px.bar(filtered_season_points_by_team, x='Points Scored', y='Team', color='Outcome', width=800, text='Points Scored')
+			st.write("The season average points scored in your league is ", round(season_points_by_team['Points Scored'].mean(),2))
+			st.write("The average for the winning teams in week ", week_selection, " was ", round(filtered_season_points_by_team[filtered_season_points_by_team['Outcome']== "Win"]['Points Scored'].mean(),2))
+			st.write("The average for the losing teams in week ", week_selection, " was ", round(filtered_season_points_by_team[filtered_season_points_by_team['Outcome']== "Loss"]['Points Scored'].mean(),2))
+			st.plotly_chart(season_points_bar)
+			# st.write(box_scores_away)
 		elif page == "Fun Facts":
 			st.header("Fun Facts")
 			st.write("A few fun, or not fun, data points for your league. Depends on who's looking I guess.")
@@ -241,6 +278,9 @@ else:
 				pos_choice = st.selectbox("Filter by Position", pos_menu)
 				acq_table = acq_table[['name', 'position', 'points_scored', 'posRank', 'team']]
 				acq_table = filterByPos(acq_table, pos_choice).sort_values(by=['points_scored'], ascending=False)
+				count = len(acq_table)
+				percent_total = round((count/len(player_data_table)*100),2)
+				st.write("There are currently ", len(acq_table), " added players on rosters at the ", pos_choice, " position." " That is equal to ", percent_total,  " percent of all rostered players in your league.")
 				st.write(acq_table)
 			elif acq_choice == "DRAFT":
 				acq_table = player_data_table[player_data_table['acquisitionType'] == "DRAFT"]
@@ -249,6 +289,9 @@ else:
 				pos_choice = st.selectbox("Filter by Position", pos_menu)
 				acq_table = acq_table[['name', 'position', 'points_scored', 'posRank', 'team']]
 				acq_table = filterByPos(acq_table, pos_choice).sort_values(by=['points_scored'], ascending=False)
+				count = len(acq_table)
+				percent_total = round((count/len(player_data_table)*100),2)
+				st.write("There are currently ", len(acq_table), " drafted players still on rosters at the ", pos_choice, " position." " That is equal to ", percent_total,  " percent of all rostered players in your league.")
 				st.write(acq_table)
 			else: 
 				acq_table = player_data_table[player_data_table['acquisitionType'] == "TRADE"]
@@ -257,9 +300,12 @@ else:
 				pos_choice = st.selectbox("Filter by Position", pos_menu)
 				acq_table = acq_table[['name', 'position', 'points_scored', 'posRank', 'team']]
 				acq_table = filterByPos(acq_table, pos_choice).sort_values(by=['points_scored'], ascending=False)
+				count = len(acq_table)
+				percent_total = round((count/len(player_data_table)*100),2)
+				st.write("There are currently ", len(acq_table), " traded players on rosters at the ", pos_choice, " position." " That is equal to ", percent_total,  " percent of all rostered players in your league.")
 				st.write(acq_table)
 		else: 
-			st.write("TBD")
+			st.image('./assets/butt_fumble.gif', width=800)
 
 
 
