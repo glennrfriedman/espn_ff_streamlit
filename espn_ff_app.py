@@ -25,6 +25,9 @@ choice = st.sidebar.selectbox("Get Started", menu)
 session_state = SessionState.get(league_id='', espn_s2='', swid='')
 
 if choice == "Enter League Data" :
+	st.header("Enter League Data")
+	st.write("To get started; please enter your league data following the instructions below.")
+	st.write("This app runs entirely using browser storage so the information provided here along with all league detail will not be collected or stored.")
 	if session_state.league_id!='' and session_state.swid !='' and session_state.espn_s2 !='' :
 			st.text_input("League ID", session_state.league_id)
 			st.text_input("SWID", session_state.swid)
