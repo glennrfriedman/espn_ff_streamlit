@@ -13,16 +13,11 @@ from TeamData import TeamData
 
 # SET LEAGUE YEAR
 year = 2020 
-# WBTD League Details
-# ID 339211
-# SWID "{2DFE4612-834F-4F94-8E1A-492F7A4A07BA}"
-# S2 "AECQDeW2ouDG9t696CAcSjh49xTD%2BDCWIIn%2BUo%2BV%2BKZ1%2Bw9CLNZpoME5iUP07iJet5wtqDfQnt9WkoWC03%2B4Y4YShn7VKwg8vZKPo%2Fgsq4hOEZcja%2Fc%2Fs5TuZ5uKp3PWmVK4VJRDXdTbmUghmovmp8UXAz191%2BCPESL54MBfU4Obspe1EJ9yQIa507Z%2Byy4VTFF456eKW3gvFnROELXH%2BONDIIkePwMe9oBDUpZCas7lB4rmjOWOJvOOVI%2Fj6B%2BOfJ%2BPI2kmDr332XmSpW5%2BRQGClPlNOJ0eWn2FtWBPkfKCmw%3D%3D"
-
 st.sidebar.header('NAVIGATION')
 menu = ["Enter League Credentials", "Explore League"]
 choice = st.sidebar.selectbox("Get Started", menu)
 
-session_state = SessionState.get(league_id='', espn_s2='', swid='', login=False)
+session_state = SessionState.get(league_id='', espn_s2='', swid='')
 
 if choice == "Enter League Credentials" :
 	st.header("Enter League Credentials")
