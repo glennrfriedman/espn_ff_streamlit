@@ -23,9 +23,9 @@ if choice == "Enter League Credentials" :
 	st.header("Enter League Credentials")
 	st.write("To get started; please enter your league data following the instructions below.")
 	st.write("This app runs entirely using browser storage so the information provided here along with all your league data will not be collected or stored.")
-	session_state.league_id = st.text_input("League ID", "")
-	session_state.swid = st.text_input("SWID", "")
-	session_state.espn_s2 = st.text_input("S2", "")
+	session_state.league_id = st.text_input("League ID", session_state.league_id)
+	session_state.swid = st.text_input("SWID", session_state.swid)
+	session_state.espn_s2 = st.text_input("S2", session_state.espn_s2)
 	if session_state.league_id=='' or session_state.swid=='' or session_state.espn_s2=='' :
 			st.write('You need to ener your league info')
 			st.subheader("Instructions to get League Credentials")
