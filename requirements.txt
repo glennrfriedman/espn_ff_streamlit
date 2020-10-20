@@ -25,6 +25,10 @@ gitdb==4.0.5
 GitPython==3.1.9
 htbuilder==0.3.0
 idna==2.10
+ipykernel==5.3.4
+ipython==7.18.1
+ipython-genutils==0.2.0
+ipywidgets==7.5.1
 iteration-utilities==0.10.1
 jedi==0.17.2
 Jinja2==2.11.2
@@ -70,13 +74,14 @@ s3transfer==0.3.3
 Send2Trash==1.5.0
 six==1.15.0
 smmap==3.0.4
-streamlit==0.69.1
 st-annotated-text==1.0.1
+streamlit==0.69.1
 terminado==0.9.1
 testpath==0.4.4
 toml==0.10.1
 toolz==0.11.1
 tornado==6.0.4
+traitlets==5.0.5
 tzlocal==2.1
 urllib3==1.25.10
 validators==0.18.1
