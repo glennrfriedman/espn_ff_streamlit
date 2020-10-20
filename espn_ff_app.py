@@ -7,62 +7,64 @@ import plotly.express as px
 import plotly.graph_objects as go
 from annotated_text import annotated_text
 import streamlit.components.v1 as components
-import SessionState
 from BoxData import BoxData
 from TeamData import TeamData
 
 # SET LEAGUE YEAR
 year = 2020 
 st.sidebar.header('NAVIGATION')
-menu = ["Enter League Credentials", "Explore League"]
+menu = ["Instructions", "Explore League"]
 choice = st.sidebar.selectbox("Get Started", menu)
 
-session_state = SessionState.get(league_id='', espn_s2='', swid='')
+# session_state = SessionState.get(league_id='', espn_s2='', swid='')
+session_state = {
+			'league_id': "",
+				'espn_s2': "",
+				'swid': ""
+}
 
-if choice == "Enter League Credentials" :
-	st.header("Enter League Credentials")
-	st.write("To get started; please enter your league data following the instructions below.")
-	st.write("This app runs entirely using browser storage so the information provided here along with all your league data will not be collected or stored.")
-	session_state.league_id = st.text_input("League ID", session_state.league_id)
-	session_state.swid = st.text_input("SWID", session_state.swid)
-	session_state.espn_s2 = st.text_input("S2", session_state.espn_s2)
-	if session_state.league_id=='' or session_state.swid=='' or session_state.espn_s2=='' :
-			st.write('You need to ener your league info')
+session_state['league_id'] = st.sidebar.text_input("League ID", session_state['league_id'])
+session_state['swid'] = st.sidebar.text_input("SWID", session_state['swid'])
+session_state['espn_s2'] = st.sidebar.text_input("S2", session_state['espn_s2'])
+
+if choice == "Instructions" :
+	if session_state['league_id']=='' or session_state['swid']=='' or session_state['espn_s2']=='' :
+			st.header("Enter League Credentials")
+			st.write("To get started; please enter your league info in the left navbar following the instructions below.")
+			st.write("This app runs without a database, your league data will not be collected or stored.")
 			st.subheader("Instructions to get League Credentials")
 			st.write("I promise it's not that bad, just head over to your EPSN league in your browser; this will take less than 5 minutes.")
 			st.subheader("Step 1: Get League ID")
 			st.write("Navigate to your ESPN league in your browser (not the app) and get the following piece of highlighted information.")
 			st.image('./assets/league_id.png', width=800)
-			st.write("Now copy that into the 'League ID' text input above as is. Just the number.")
+			st.write("Now copy that into the 'League ID' text input in the left navbar as is. Just the number.")
 			st.subheader("Step 2: Get SWID")
-			st.write("In Chrome go to tools menu then 'More Tools' then 'Developer Tools'. Don't worry image below.")
+			st.write("While still on your League page in ESPN (in Chrome) go to tools menu then 'More Tools' then 'Developer Tools'. Don't worry image below.")
 			st.image('./assets/dev_tools.png', width=800)
 			st.write("Now with the developer tools open navigate to the Storage --> Cookies section, click on the https://fantasy.espn.com option.")
 			st.write("Then search for SWID in the search.")
-			st.write("Once you find the SWID copy the entire value INCLUDING the {} and paste into the SWID input above. Screenshot below.")
+			st.write("Once you find the SWID copy the entire value INCLUDING the {} and paste into the SWID input in the left navbar. Screenshot below.")
 			st.image('./assets/swid.png', width=800)
 			st.subheader("Step 3: Get S2")
 			st.write("For step 3 stay right where you are, and replace the SWID search with espn_s2.")
 			st.write("Double click and copy the ENTIRE SUPER LONG S2 value.")
-			st.write("Copy the S2 value above into the S2 input above...it's really long so please make sure you get the whole thing.")
+			st.write("Copy the S2 value above into the S2 input in the left navbar...it's really long so please make sure you get the whole thing.")
 			st.subheader("When you're all done it should look like the following...")
 			st.image('./assets/example_login.png', width=800)
 			st.subheader("Not so bad, right? (I hope). Save these values in a text file on your computer somewhere so you can re-use them if you want to come back!")
-			st.subheader("Change the Navigation option on the right to Explore League to check out your data.")	
+			st.subheader("Change the Navigation option in the left navbar to Explore League to check out your data.")	
 	else :
-			# st.text_input("League ID", session_state.league_id)
-			# st.text_input("SWID", session_state.swid)
-			# st.text_input("S2", session_state.espn_s2)
 			st.subheader('DOPE!')
-			st.write('Your league data has been entered; check out the Explore League page and start crushing your friends with data.')
+			st.write('Your league data has been entered; check out the Explore League page from the left navbar and start crushing your friends with data.')
+			st.image('./assets/obj.gif', width=800)
 else:
-	if session_state.league_id=='' or session_state.swid =='' or session_state.espn_s2 =='' :
+	if session_state['league_id']=='' or session_state['swid'] =='' or session_state['espn_s2'] =='' :
 		st.header('Nothing to see here ... please enter your league credentials to get started.')
 		st.image('./assets/butt_fumble.gif', width=800)
 	else:
 		page = st.sidebar.radio("View", ("Player Performance", "Team Performance", "Fun Facts", "Player Movement"))
 		def getData():
-			data = BoxData(year, int(session_state.league_id), str(session_state.espn_s2), str(session_state.swid))
+			data = BoxData(year, int(session_state['league_id']), str(session_state['espn_s2']), str(session_state['swid']))
 			return data
 
 		@st.cache(allow_output_mutation=True)
@@ -88,13 +90,13 @@ else:
 
 		@st.cache
 		def getLeagueData():
-			data = TeamData(year, int(session_state.league_id), str(session_state.espn_s2), str(session_state.swid))
+			data = TeamData(year, int(session_state['league_id']), str(session_state['espn_s2']), str(session_state['swid']))
 			box_data = data.getBoxData()
 			team_data = data.getTeamData()
 			return box_data, team_data
 
 		def getPlayerSeasonData():
-			data = TeamData(year, int(session_state.league_id), str(session_state.espn_s2), str(session_state.swid))
+			data = TeamData(year, int(session_state['league_id']), str(session_state['espn_s2']), str(session_state['swid']))
 			player_data = data.getPlayerData()
 			return player_data
 
